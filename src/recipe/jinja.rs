@@ -157,6 +157,25 @@ fn set_jinja(config: &SelectorConfig) -> minijinja::Environment<'static> {
         Ok(res)
     });
 
+    let SelectorConfig {
+        variant, subdir, ..
+    } = config.clone();
+    env.add_function("stdlib", move |lang: String| {
+        let target_platform = variant
+            .get("target_platform")
+            .map(String::as_str)
+            .unwrap_or(subdir.as_str());
+        let language_key = format!("{lang}_stdlib");
+        let package_prefix = variant.get(&language_key).cloned().unwrap_or_else(|| lang);
+        let version = variant.get(&format!("{language_key}_version"));
+        let package = format!("{package_prefix}_{target_platform}");
+        Ok(if let Some(version) = version {
+            format!("{package} {version}")
+        } else {
+            package
+        })
+    });
+
     env.add_function("compiler", |lang: String| {
         // we translate the compiler into a YAML string
         Ok(format!("__COMPILER {}", lang.to_lowercase()))

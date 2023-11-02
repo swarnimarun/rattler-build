@@ -10,6 +10,7 @@ pub struct SelectorConfig {
     pub build_platform: Platform,
     pub hash: Option<String>,
     pub variant: BTreeMap<String, String>,
+    pub subdir: String,
 }
 
 impl SelectorConfig {
