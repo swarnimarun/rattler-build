@@ -9,6 +9,8 @@ use crate::{
     },
 };
 
+use super::FlattenErrors;
+
 /// Define tests in your recipe that are executed after successfully building the package.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Test {
@@ -107,7 +109,7 @@ impl TryConvertNode<PackageContent> for RenderedMappingNode {
         let mut libs = vec![];
         let mut bins = vec![];
         let mut includes = vec![];
-        let (_, errs): (Vec<()>, Vec<Vec<PartialParsingError>>) = self.iter().map(|(key, value)| {
+        self.iter().map(|(key, value)| {
             let key_str = key.as_str();
             match key_str {
                 "files" => files = value.try_convert(key_str)?,
@@ -122,11 +124,7 @@ impl TryConvertNode<PackageContent> for RenderedMappingNode {
                 )])?
             }
             Ok(())
-        }).partition_result();
-
-        if !errs.is_empty() {
-            return Err(errs.into_iter().flatten().collect_vec());
-        }
+        }).flatten_errors()?;
 
         Ok(PackageContent {
             files,
@@ -193,7 +191,7 @@ impl TryConvertNode<Test> for RenderedMappingNode {
     fn try_convert(&self, name: &str) -> Result<Test, Vec<PartialParsingError>> {
         let mut test = Test::default();
 
-        let (_, errs): (Vec<()>, Vec<Vec<PartialParsingError>>) = self.iter().map(|(key, value)| {
+        self.iter().map(|(key, value)| {
             let key_str = key.as_str();
             match key_str {
                 "package_contents" => test.package_contents = value.try_convert(key_str)?,
@@ -209,11 +207,7 @@ impl TryConvertNode<Test> for RenderedMappingNode {
                 )])?
             };
             Ok(())
-        }).partition_result();
-
-        if !errs.is_empty() {
-            return Err(errs.into_iter().flatten().collect_vec());
-        }
+        }).flatten_errors()?;
 
         Ok(test)
     }

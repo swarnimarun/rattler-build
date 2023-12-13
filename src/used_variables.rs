@@ -221,7 +221,7 @@ pub(crate) fn used_vars_from_expressions(
             extract_variables(&ast, &mut variables);
             Ok(())
         })
-        .partition_result();
+        .flatten_errors()?;
 
     if !errs.is_empty() {
         return Err(errs);

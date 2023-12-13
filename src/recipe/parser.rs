@@ -162,7 +162,7 @@ impl Recipe {
         let mut test = Test::default();
         let mut about = About::default();
 
-        let (_, errs): (Vec<()>, Vec<Vec<PartialParsingError>>) = rendered_node
+        rendered_node
             .iter()
             .map(|(key, value)| {
                 let key_str = key.as_str();
@@ -192,11 +192,7 @@ impl Recipe {
                 }
                 Ok(())
             })
-            .partition_result();
-
-        if !errs.is_empty() {
-            return Err(errs.into_iter().flatten().collect_vec());
-        }
+            .flatten_errors()?;
 
         // Add hash to build.string if it is not set
         if build.string.is_none() {
