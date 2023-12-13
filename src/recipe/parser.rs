@@ -55,6 +55,27 @@ pub struct Recipe {
     about: About,
 }
 
+pub(crate) trait FlattenErrors<K, V>: Iterator<Item = Result<K, Vec<V>>> + Sized {
+    fn flatten_errors(self) -> Result<(), Vec<V>> {
+        let err = self
+            .filter_map(|res| match res {
+                Ok(_) => None,
+                Err(err) => Some(err),
+            })
+            .fold(Vec::<V>::new(), |mut acc, x| {
+                acc.extend(x);
+                acc
+            });
+        if err.is_empty() {
+            Ok(())
+        } else {
+            Err(err)
+        }
+    }
+}
+
+impl<T, K, V> FlattenErrors<K, V> for T where T: Iterator<Item = Result<K, Vec<V>>> + Sized {}
+
 impl Recipe {
     /// Build a recipe from a YAML string.
     pub fn from_yaml(yaml: &str, jinja_opt: SelectorConfig) -> Result<Self, Vec<ParsingError>> {
@@ -108,7 +129,7 @@ impl Recipe {
                 )]
             })?;
 
-            let (_, errs): (Vec<()>, Vec<Vec<PartialParsingError>>) = context
+            context
                 .iter()
                 .map(|(k, v)| {
                     let val = v.as_scalar().ok_or_else(|| {
@@ -129,11 +150,7 @@ impl Recipe {
                     }
                     Ok(())
                 })
-                .partition_result();
-
-            if !errs.is_empty() {
-                return Err(errs.into_iter().flatten().collect_vec());
-            }
+                .flatten_errors()?;
         }
 
         let rendered_node: RenderedMappingNode = root_node.render(&jinja, "ROOT")?;
