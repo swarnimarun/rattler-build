@@ -2,7 +2,6 @@
 
 use std::{fmt, path::PathBuf, str::FromStr};
 
-use itertools::Itertools;
 use rattler_digest::{serde::SerializableHash, Md5, Md5Hash, Sha256, Sha256Hash};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;

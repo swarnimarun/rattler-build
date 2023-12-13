@@ -1,6 +1,5 @@
 use std::str::FromStr;
 
-use itertools::Itertools;
 use rattler_conda_types::{package::EntryPoint, NoArchType};
 use serde::{Deserialize, Serialize};
 

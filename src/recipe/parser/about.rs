@@ -3,7 +3,6 @@ use std::{
     str::FromStr,
 };
 
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use serde_with::{DeserializeFromStr, SerializeDisplay};
 use spdx::Expression;
